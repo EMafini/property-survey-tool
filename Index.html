@@ -52,10 +52,10 @@
 <div class="container">
     <div id="loginScreen">
         <h1>Surveyor Login</h1>
-        <p style="font-size: 0.85rem; color: #666;">Enter passcode (Numpad Enabled)</p>
+        <p style="font-size: 0.85rem; color: #666;">Enter Authorization Code</p>
         <input type="password" 
                id="passInput" 
-               placeholder="12126" 
+               placeholder="Enter Passcode" 
                inputmode="numeric" 
                pattern="[0-9]*" 
                style="padding:15px; width:70%; border:2px solid #ddd; border-radius:8px; font-size:1.5rem; text-align:center;">
@@ -102,7 +102,6 @@
         } else { alert("Incorrect Code."); }
     }
 
-    // Standard Components
     const coreComponents = [
         { name: "CO2 Detector", life: 5, isCO2: true },
         { name: "Bathrooms", life: 30, vary: true },
