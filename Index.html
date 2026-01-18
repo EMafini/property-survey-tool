@@ -18,14 +18,15 @@
         .header-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; }
         .full-width { grid-column: span 2; }
         .control-group label { display: block; font-weight: bold; font-size: 0.8rem; margin-bottom: 3px; color: var(--dark); }
-        .control-group input { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .control-group input, .control-group select { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         
-        .checkbox-group { grid-column: span 2; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #eee; }
+        .checkbox-row { grid-column: span 2; display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
         .checkbox-group input { width: 22px; height: 22px; }
 
         .btn-row { grid-column: span 2; display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-all { flex: 2 1 100%; background: var(--success); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        .btn-report { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
+        .btn-all { flex: 2 1 100%; background: var(--success); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 5px; }
+        .btn-history { flex: 1; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
         .btn-reset { flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
 
         .row { display: grid; grid-template-columns: 1.1fr 0.8fr 0.6fr 1.4fr; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
@@ -41,8 +42,11 @@
         .door-section { border-top: 2px dashed #ddd; margin-top: 10px; padding-top: 5px; }
         .add-door-btn { background: var(--accent); color: white; border: none; padding: 8px; border-radius: 5px; font-size: 0.8rem; margin: 10px 0; width: 100%; cursor: pointer; }
 
-        #reportOutput { display: none; background: #333; color: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; }
-        .close-report { position: absolute; top: 5px; right: 10px; color: #ff7675; cursor: pointer; }
+        #historyPanel { display: none; background: #333; color: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; }
+        .close-btn { position: absolute; top: 5px; right: 10px; color: #ff7675; cursor: pointer; font-weight: bold; }
+
+        #historySearch { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; font-size: 1rem; }
+        .history-item { border-bottom: 1px solid #555; padding: 10px 0; }
 
         @media (max-width: 480px) { .row { grid-template-columns: 1fr 0.8fr 1.2fr; } .row div:nth-child(3) { display: none; } }
     </style>
@@ -52,15 +56,9 @@
 <div class="container">
     <div id="loginScreen">
         <h1>Surveyor Login</h1>
-        <p style="font-size: 0.85rem; color: #666;">Enter Authorization Code</p>
-        <input type="password" 
-               id="passInput" 
-               placeholder="Enter Passcode" 
-               inputmode="numeric" 
-               pattern="[0-9]*" 
-               style="padding:15px; width:70%; border:2px solid #ddd; border-radius:8px; font-size:1.5rem; text-align:center;">
+        <input type="password" id="passInput" placeholder="Enter Passcode" inputmode="numeric" pattern="[0-9]*" style="padding:15px; width:70%; border:2px solid #ddd; border-radius:8px; font-size:1.5rem; text-align:center;">
         <br><br>
-        <button onclick="checkPass()" style="padding:15px 40px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Access Tool</button>
+        <button onclick="checkPass()" style="padding:15px 40px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold;">Access Tool</button>
     </div>
 
     <div id="appContent">
@@ -68,26 +66,39 @@
         <div class="credit">Proprietary Algorithm — Developed by [Your Name]</div>
 
         <div class="header-controls">
-            <div class="control-group full-width"><label>Property Reference</label><input type="text" id="propRef" placeholder="Address"></div>
-            <div class="control-group"><label>Build Year</label><input type="number" id="defaultYear" placeholder="Year"></div>
-            <div class="control-group"><label>Wall Area</label><input type="number" id="wallArea" placeholder="m²"></div>
-            <div class="checkbox-group"><input type="checkbox" id="similarProperty"><label for="similarProperty">Similar Property (2-5y Jitter)</label></div>
+            <div class="control-group full-width"><label>Property Ref / Postcode</label><input type="text" id="propRef" placeholder="Address"></div>
+            <div class="control-group">
+                <label>Property Type</label>
+                <select id="propType" onchange="renderGrid()">
+                    <option value="house">House / Bungalow</option>
+                    <option value="flat">Flat (Internal Only)</option>
+                    <option value="block">Block (External Only)</option>
+                </select>
+            </div>
+            <div class="control-group"><label>Build Year</label><input type="number" id="defaultYear" inputmode="numeric" placeholder="Year"></div>
+            <div class="control-group full-width"><label>Wall Area (m²)</label><input type="number" id="wallArea" inputmode="decimal" placeholder="m²"></div>
+            
+            <div class="checkbox-row">
+                <label class="checkbox-group"><input type="checkbox" id="similarProperty"><span>Similar Property (Same Road/Postcode Variation)</span></label>
+                <label class="checkbox-group"><input type="checkbox" id="saveToggle"><span style="color:var(--primary)">Save to History Database</span></label>
+            </div>
+
             <div class="btn-row">
-                <button class="btn-all" onclick="calculateAll()">Calculate All</button>
-                <button class="btn-report" onclick="generateSummary()">Report</button>
-                <button class="btn-reset" onclick="resetForm()">Reset</button>
+                <button class="btn-all" onclick="calculateAll()">Calculate All (= or Enter)</button>
+                <button class="btn-history" onclick="toggleHistory()">View Saved History</button>
+                <button class="btn-reset" onclick="resetForm()">Reset All Fields</button>
             </div>
         </div>
 
         <div id="mainGrid"></div>
-        <div class="door-section">
-            <div id="doorGrid"></div>
-            <button class="add-door-btn" onclick="addDoorRow()">+ Add Another Door Type</button>
+        <div class="door-section" id="doorSection"><div id="doorGrid"></div><button class="add-door-btn" onclick="addDoorRow()">+ Add Door Type</button></div>
+
+        <div id="historyPanel">
+            <span class="close-btn" onclick="this.parentElement.style.display='none'">[X] Close</span>
+            <h3>Saved Surveys</h3>
+            <input type="text" id="historySearch" placeholder="Search Postcode/Ref..." onkeyup="filterHistory()">
+            <div id="historyList"></div>
         </div>
-
-        <div id="extraGrid"></div>
-
-        <div id="reportOutput"><span class="close-report" onclick="this.parentElement.style.display='none'">[Close]</span><div id="reportText"></div></div>
     </div>
 </div>
 
@@ -99,68 +110,69 @@
         if (document.getElementById('passInput').value === MY_PASSWORD) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
+            renderGrid();
         } else { alert("Incorrect Code."); }
     }
 
-    const coreComponents = [
-        { name: "CO2 Detector", life: 5, isCO2: true },
-        { name: "Bathrooms", life: 30, vary: true },
-        { name: "Kitchens", life: 20, vary: true },
-        { name: "Wall Structure", life: 80 },
-        { name: "Brick Wall Finish", life: 60 },
-        { name: "Roof Structure", life: 50 },
-        { name: "Roof Finish", life: 50, isRoofCovering: true },
-        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true },
-        { name: "Chimneys", life: 50 },
-        { name: "Windows", life: 30, vary: true }
+    const components = [
+        { name: "CO2 Detector", life: 5, isCO2: true, cat: "int", jitter: true },
+        { name: "Bathrooms", life: 30, vary: true, cat: "int", jitter: true },
+        { name: "Kitchens", life: 20, vary: true, cat: "int", jitter: true },
+        { name: "Wall Structure", life: 80, cat: "ext" },
+        { name: "Brick Wall Finish", life: 60, cat: "ext" },
+        { name: "Roof Structure", life: 50, cat: "ext" },
+        { name: "Roof Finish", life: 50, isRoofCovering: true, cat: "ext" },
+        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true, cat: "ext", jitter: true },
+        { name: "Chimneys", life: 50, cat: "ext" },
+        { name: "Windows", life: 30, vary: true, cat: "all", jitter: true },
+        { name: "Roofline Items", life: 30, cat: "ext" },
+        { name: "Lintels", life: 60, cat: "ext" },
+        { name: "Gas Boilers", life: 15, cat: "all" },
+        { name: "Radiators", life: 30, cat: "all" },
+        { name: "Gen. Heating", life: 30, vary: true, cat: "all" },
+        { name: "Electrics", life: 30, vary: true, cat: "all" }
     ];
 
-    const footerComponents = [
-        { name: "Lintels", life: 60 },
-        { name: "Roofline Items", life: 30 },
-        { name: "Gas Boilers", life: 15 },
-        { name: "Radiators", life: 30 },
-        { name: "Gen. Heating", life: 30, vary: true },
-        { name: "Electrics", life: 30, vary: true }
-    ];
+    function renderGrid() {
+        const type = document.getElementById('propType').value;
+        const grid = document.getElementById('mainGrid');
+        const doorSection = document.getElementById('doorSection');
+        grid.innerHTML = '';
+        
+        // Hide/Show Doors (Usually for all except maybe some specific Blocks)
+        doorSection.style.display = (type === 'block') ? 'none' : 'block';
 
-    function createRow(c, i, containerId) {
-        const div = document.createElement('div');
-        div.className = 'row component-row';
-        div.dataset.life = c.life;
-        div.dataset.name = c.name;
-        div.dataset.vary = c.vary || false;
-        div.dataset.isCO2 = c.isCO2 || false;
-        div.dataset.isInsulation = c.isInsulation || false;
-        div.dataset.isRoofCovering = c.isRoofCovering || false;
+        components.forEach((c, i) => {
+            if (type === 'flat' && c.cat === 'ext') return;
+            if (type === 'block' && c.cat === 'int') return;
 
-        div.innerHTML = `
-            <div class="row-label">${c.name}</div>
-            <div><input type="number" class="inst-year" placeholder="Auto"></div>
-            <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
-            <div class="result-box">---</div>
-        `;
-        document.getElementById(containerId).appendChild(div);
+            const div = document.createElement('div');
+            div.className = 'row component-row';
+            div.dataset.life = c.life;
+            div.dataset.name = c.name;
+            div.dataset.jitter = c.jitter || false;
+            div.dataset.isCO2 = c.isCO2 || false;
+            div.dataset.isInsulation = c.isInsulation || false;
+            div.dataset.isRoofCovering = c.isRoofCovering || false;
+
+            div.innerHTML = `
+                <div class="row-label">${c.name}</div>
+                <div><input type="number" class="inst-year" inputmode="numeric" placeholder="Auto"></div>
+                <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
+                <div class="result-box">---</div>
+            `;
+            grid.appendChild(div);
+        });
     }
 
-    coreComponents.forEach((c, i) => createRow(c, i, 'mainGrid'));
-    footerComponents.forEach((c, i) => createRow(c, i, 'extraGrid'));
-
-    function addDoorRow() {
+    function addDoorRow(prefillName = "Ext Front Door", prefillYear = "") {
         const div = document.createElement('div');
         div.className = 'row door-row component-row';
         div.dataset.life = 30;
-        div.dataset.vary = true;
+        div.dataset.jitter = true;
         div.innerHTML = `
-            <div>
-                <select class="door-type">
-                    <option value="Ext Front Door">Ext Front Door</option>
-                    <option value="Ext Rear Door">Ext Rear Door</option>
-                    <option value="Ext Side Door">Ext Side Door</option>
-                    <option value="Patio Door">Patio Door</option>
-                </select>
-            </div>
-            <div><input type="number" class="inst-year" placeholder="Year"></div>
+            <div><select class="door-type"><option value="Ext Front Door">Ext Front Door</option><option value="Ext Rear Door">Ext Rear Door</option><option value="Ext Side Door">Ext Side Door</option><option value="Patio Door">Patio Door</option></select></div>
+            <div><input type="number" class="inst-year" inputmode="numeric" value="${prefillYear}" placeholder="Year"></div>
             <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
             <div class="result-box">---</div>
         `;
@@ -170,15 +182,14 @@
 
     document.addEventListener('keydown', (e) => { 
         if (e.key === '=' || e.key === 'Enter') {
-            if (document.getElementById('appContent').style.display === 'block') {
-                calculateAll(); 
-            } else {
-                checkPass();
-            }
+            if (document.getElementById('appContent').style.display === 'block') calculateAll(); else checkPass();
         }
     });
 
-    function calculateAll() { document.querySelectorAll('.component-row').forEach(row => calculateSingleRow(row)); }
+    function calculateAll() { 
+        document.querySelectorAll('.component-row').forEach(row => calculateSingleRow(row));
+        if (document.getElementById('saveToggle').checked) saveToHistory();
+    }
 
     function calculateSingleRow(row) {
         const defY = parseInt(document.getElementById('defaultYear').value);
@@ -187,16 +198,22 @@
         const resBox = row.querySelector('.result-box');
         const life = parseInt(row.dataset.life);
         
-        let instY = parseInt(row.querySelector('.inst-year').value) || defY;
+        let manualInput = row.querySelector('.inst-year').value;
+        let instY = parseInt(manualInput) || defY;
         
+        // Jitter Logic: Only if Similar Property is ON, and No manual input, and component allows jitter
+        if (useVar && !manualInput && row.dataset.jitter === "true") {
+            const jit = Math.floor(Math.random() * 4) + 2;
+            instY += (Math.random() < 0.5 ? -jit : jit);
+        }
+
         if (row.dataset.isCO2 === "true") {
             const kRow = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === "Kitchens");
-            const kY = parseInt(kRow.querySelector('.inst-year').value) || defY;
+            const kY = kRow ? (parseInt(kRow.querySelector('.inst-year').value) || defY) : defY;
             instY = (kY >= 2020 && kY <= currentYear) ? kY : Math.floor(Math.random() * (currentYear - 2020 + 1)) + 2020;
         }
 
         if (!instY) { resBox.innerHTML = "<span style='color:red;'>Set Year</span>"; return; }
-        if (useVar && row.dataset.vary === "true") instY += (Math.random() < 0.5 ? -1 : 1) * (Math.floor(Math.random() * 4) + 2);
         if (instY > currentYear) instY = currentYear;
 
         let lastExp = instY;
@@ -210,38 +227,67 @@
         if (row.dataset.isInsulation === "true") extra += `<div>Dep: ${Math.max(150, Math.min(250, Math.round(150 + ((instY - 2010) * 6.25))))}mm</div>`;
         if (row.dataset.isRoofCovering === "true" && area) extra += `<div>Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</div>`;
 
-        const name = row.querySelector('.door-type') ? row.querySelector('.door-type').value : row.dataset.name;
-        row.dataset.calculatedName = name;
-
-        resBox.innerHTML = `
-            <span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span>
-            ${cycleEndedText}
-            <span class="history-note">Next Due: ${nextExp}</span>
-            <div class="extra-data">${extra}</div>
-        `;
+        resBox.innerHTML = `<span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span>${cycleEndedText}<span class="history-note">Next Due: ${nextExp}</span><div class="extra-data">${extra}</div>`;
     }
 
-    function generateSummary() {
-        const ref = document.getElementById('propRef').value || "Unknown Property";
-        let s = `REPORT: ${ref}\nDate: ${new Date().toLocaleDateString()}\n--------------------\n`;
-        document.querySelectorAll('.component-row').forEach(row => {
-            const r = row.querySelector('.result-box');
-            if (r && r.innerText !== "---") {
-                const name = row.dataset.calculatedName || row.dataset.name;
-                s += `${name}: ${r.innerText.replace(/\n/g, " | ")}\n`;
-            }
-        });
-        document.getElementById('reportText').innerText = s;
-        document.getElementById('reportOutput').style.display = 'block';
+    function saveToHistory() {
+        const ref = document.getElementById('propRef').value;
+        if (!ref) { alert("Enter Ref to save!"); return; }
+        const history = JSON.parse(localStorage.getItem('surveyHistory') || '[]');
+        const entry = {
+            ref: ref, date: new Date().toLocaleString(),
+            buildYear: document.getElementById('defaultYear').value,
+            type: document.getElementById('propType').value,
+            data: Array.from(document.querySelectorAll('.component-row')).map(row => ({
+                name: row.dataset.name || row.querySelector('.door-type')?.value,
+                year: row.querySelector('.inst-year').value
+            }))
+        };
+        history.unshift(entry);
+        localStorage.setItem('surveyHistory', JSON.stringify(history.slice(0, 50)));
+        alert("Saved!");
+        document.getElementById('saveToggle').checked = false;
+    }
+
+    function toggleHistory() {
+        const panel = document.getElementById('historyPanel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        filterHistory();
+    }
+
+    function filterHistory() {
+        const search = document.getElementById('historySearch').value.toLowerCase();
+        const history = JSON.parse(localStorage.getItem('surveyHistory') || '[]');
+        const list = document.getElementById('historyList');
+        list.innerHTML = history.filter(h => h.ref.toLowerCase().includes(search)).map((h, i) => `
+            <div class="history-item">
+                <strong>${h.ref}</strong> [${h.type}] (${h.date.split(',')[0]})<br>
+                <button onclick="loadHistory(${i})" style="margin-top:5px; background:var(--primary); color:white; border:none; padding:8px; border-radius:3px;">Load Data</button>
+            </div>
+        `).join('');
+    }
+
+    function loadHistory(index) {
+        const h = JSON.parse(localStorage.getItem('surveyHistory'))[index];
+        document.getElementById('propRef').value = h.ref;
+        document.getElementById('propType').value = h.type;
+        document.getElementById('defaultYear').value = h.buildYear;
+        renderGrid();
+        setTimeout(() => {
+            h.data.forEach(item => {
+                const row = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === item.name || r.querySelector('.door-type')?.value === item.name);
+                if (row) row.querySelector('.inst-year').value = item.year;
+            });
+            calculateAll();
+        }, 100);
+        document.getElementById('historyPanel').style.display = 'none';
     }
 
     function resetForm() {
         document.querySelectorAll('input').forEach(i => i.value = '');
         document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---');
         document.getElementById('doorGrid').innerHTML = '';
-        addDoorRow();
-        document.getElementById('reportOutput').style.display = 'none';
-        document.getElementById('similarProperty').checked = false;
+        addDoorRow(); renderGrid();
     }
 </script>
 </body>
