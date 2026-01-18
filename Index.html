@@ -3,38 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rem Life Surveyor Pro</title>
+    <title>RemLife Surveyor Pro</title>
     <style>
         :root { --primary: #3498db; --success: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --dark: #2c3e50; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); padding: 10px; color: #333; margin: 0; }
         .container { max-width: 850px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin: auto; }
         
-        h1 { color: var(--dark); text-align: center; font-size: 1.3rem; margin: 5px 0 10px 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
-        .credit { text-align: center; font-size: 0.7rem; color: #aaa; margin-bottom: 10px; }
+        #loginScreen { text-align: center; padding: 50px 20px; }
+        #appContent { display: none; }
 
-        .header-controls { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee;
-        }
+        h1 { color: var(--dark); text-align: center; font-size: 1.3rem; margin: 5px 0 10px 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        .credit { text-align: center; font-size: 0.7rem; color: #aaa; margin-bottom: 10px; font-style: italic; }
+
+        .header-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; }
         .full-width { grid-column: span 2; }
         .control-group label { display: block; font-weight: bold; font-size: 0.8rem; margin-bottom: 3px; color: var(--dark); }
-        .control-group input { width: 100%; padding: 8px; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .control-group input { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         
-        .checkbox-group { grid-column: span 2; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; background: #fff; padding: 6px; border-radius: 5px; border: 1px solid #eee; }
-        .checkbox-group input { width: 18px; height: 18px; }
+        .checkbox-group { grid-column: span 2; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: bold; background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #eee; }
+        .checkbox-group input { width: 22px; height: 22px; }
 
-        .btn-row { grid-column: span 2; display: flex; gap: 8px; }
-        .btn-all { flex: 3; background: var(--success); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
-        .btn-reset { flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+        .btn-row { grid-column: span 2; display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-all { flex: 2 1 100%; background: var(--success); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 5px; }
+        .btn-report { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; }
+        .btn-reset { flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; }
 
         .row { display: grid; grid-template-columns: 1.1fr 0.8fr 0.6fr 1.4fr; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .row-label { font-size: 0.8rem; font-weight: 600; line-height: 1.1; }
-        .row input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; width: 100%; box-sizing: border-box; }
-        .btn-single { background: var(--primary); color: white; border: none; padding: 6px 2px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .row-label { font-size: 0.8rem; font-weight: 600; }
+        .row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
+        .btn-single { background: var(--primary); color: white; border: none; padding: 8px 4px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
 
         .result-box { font-size: 0.75rem; line-height: 1.2; }
-        .rem-years { font-weight: bold; font-size: 0.85rem; display: block; }
-        .history-note { font-size: 0.65rem; color: #777; display: block; }
-        .extra-data { font-size: 0.7rem; color: #d35400; font-weight: 600; display: block; }
+        .rem-years { font-weight: bold; font-size: 0.9rem; display: block; }
+        .history-note { font-size: 0.7rem; color: #777; display: block; }
+        .extra-data { font-size: 0.75rem; color: #d35400; font-weight: 600; display: block; }
+
+        #reportOutput { display: none; background: #333; color: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; }
+        .close-report { position: absolute; top: 5px; right: 10px; color: #ff7675; font-weight: bold; cursor: pointer; }
 
         @media (max-width: 480px) {
             .row { grid-template-columns: 1fr 0.8fr 1.2fr; }
@@ -45,47 +50,76 @@
 <body>
 
 <div class="container">
-    <h1>RemLife Surveyor Pro</h1>
-    <div class="credit">Proprietary Tool - Developed by Ebenezer Mafini</div>
-
-    <div class="header-controls">
-        <div class="control-group full-width">
-            <label>Property Reference / Address</label>
-            <input type="text" id="propRef" placeholder="e.g. 12 High St / Postcode">
-        </div>
-        <div class="control-group">
-            <label>Build Year</label>
-            <input type="number" id="defaultYear" placeholder="Data">
-        </div>
-        <div class="control-group">
-            <label>Wall Area</label>
-            <input type="number" id="wallArea" placeholder="m²">
-        </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="similarProperty">
-            <label for="similarProperty">Similar Property (2-5y Jitter)</label>
-        </div>
-        <div class="btn-row">
-            <button class="btn-all" onclick="calculateAll()">Calculate All (=/Enter)</button>
-            <button class="btn-reset" onclick="resetForm()">Reset</button>
-        </div>
+    <div id="loginScreen">
+        <h1>Surveyor Login</h1>
+        <p style="font-size: 0.9rem; color: #666;">Enter authorization code for the RemLife tool.</p>
+        <input type="password" id="passInput" placeholder="Code" style="padding:12px; width:80%; border:2px solid #ddd; border-radius:6px; font-size:1.1rem; text-align:center;">
+        <br><br>
+        <button onclick="checkPass()" style="padding:12px 30px; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Access Tool</button>
     </div>
 
-    <div id="mainGrid"></div>
+    <div id="appContent">
+        <h1>RemLife Surveyor Pro</h1>
+        <div class="credit">Proprietary Algorithm — Developed by [Your Name]</div>
+
+        <div class="header-controls">
+            <div class="control-group full-width">
+                <label>Property Reference</label>
+                <input type="text" id="propRef" placeholder="Address / Postcode">
+            </div>
+            <div class="control-group">
+                <label>Build Year</label>
+                <input type="number" id="defaultYear" placeholder="Year">
+            </div>
+            <div class="control-group">
+                <label>Wall Area</label>
+                <input type="number" id="wallArea" placeholder="m²">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="similarProperty">
+                <label for="similarProperty">Similar Property (2-5y Jitter)</label>
+            </div>
+            <div class="btn-row">
+                <button class="btn-all" onclick="calculateAll()">Calculate All</button>
+                <button class="btn-report" onclick="generateSummary()">Report</button>
+                <button class="btn-reset" onclick="resetForm()">Reset</button>
+            </div>
+        </div>
+        <div id="mainGrid"></div>
+        <div id="reportOutput"><span class="close-report" onclick="this.parentElement.style.display='none'">[Close]</span><div id="reportText"></div></div>
+    </div>
 </div>
 
 <script>
-    const currentYear = 2026;
+    const MY_PASSWORD = "1212026"; 
+    const currentYear = new Date().getFullYear(); 
+
+    function checkPass() {
+        if (document.getElementById('passInput').value === MY_PASSWORD) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+        } else { alert("Incorrect Authorization Code."); }
+    }
+
     const components = [
-        { name: "Wall Structure", life: 80 }, { name: "Lintels", life: 60 },
-        { name: "Brick Wall Finish", life: 60 }, { name: "Roof Structure", life: 50 },
+        { name: "Wall Structure", life: 80 }, 
+        { name: "Lintels", life: 60 },
+        { name: "Brick Wall Finish", life: 60 }, 
+        { name: "Roof Structure", life: 50 },
         { name: "Roof Finish", life: 50, isRoofCovering: true },
         { name: "Roof Insulation", life: 40, isInsulation: true, vary: true },
-        { name: "Chimneys", life: 50 }, { name: "Windows", life: 30, vary: true },
-        { name: "External Doors", life: 30, vary: true }, { name: "Roofline Items", life: 30 },
-        { name: "Kitchens", life: 20, vary: true }, { name: "Bathrooms", life: 30, vary: true },
-        { name: "Gas Boilers", life: 15 }, { name: "Radiators", life: 30 },
-        { name: "Gen. Heating", life: 30, vary: true }, { name: "Electrics", life: 30, vary: true },
+        { name: "Chimneys", life: 50 }, 
+        { name: "Windows", life: 30, vary: true },
+        { name: "External Door (Front)", life: 30, vary: true }, 
+        { name: "External Door (Rear/Side)", life: 30, vary: true }, 
+        { name: "Patio/French Doors", life: 30, vary: true }, 
+        { name: "Roofline Items", life: 30 },
+        { name: "Kitchens", life: 20, vary: true }, 
+        { name: "Bathrooms", life: 30, vary: true },
+        { name: "Gas Boilers", life: 15 }, 
+        { name: "Radiators", life: 30 },
+        { name: "Gen. Heating", life: 30, vary: true }, 
+        { name: "Electrics", life: 30, vary: true },
         { name: "CO2 Detector", life: 5, isCO2: true }
     ];
 
@@ -93,12 +127,7 @@
     components.forEach((c, i) => {
         const div = document.createElement('div');
         div.className = 'row';
-        div.innerHTML = `
-            <div class="row-label">${c.name} <span style="font-weight:normal; font-size:0.65rem; color:#999;">(${c.life}y)</span></div>
-            <div><input type="number" id="year-${i}" placeholder="Auto"></div>
-            <div><button class="btn-single" onclick="calculateSingle(${i})">Calc</button></div>
-            <div class="result-box" id="result-${i}">---</div>
-        `;
+        div.innerHTML = `<div class="row-label">${c.name}</div><div><input type="number" id="year-${i}" placeholder="Auto"></div><div><button class="btn-single" onclick="calculateSingle(${i})">Calc</button></div><div class="result-box" id="result-${i}">---</div>`;
         grid.appendChild(div);
     });
 
@@ -108,39 +137,48 @@
         document.querySelectorAll('input').forEach(i => i.value = '');
         document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---');
         document.getElementById('similarProperty').checked = false;
+        document.getElementById('reportOutput').style.display = 'none';
     }
 
     function calculateAll() { components.forEach((_, i) => calculateSingle(i)); }
 
     function calculateSingle(i) {
-        const c = components[i];
-        const defY = parseInt(document.getElementById('defaultYear').value);
-        const area = parseFloat(document.getElementById('wallArea').value);
-        const useVar = document.getElementById('similarProperty').checked;
-        const res = document.getElementById(`result-${i}`);
+        const c = components[i], defY = parseInt(document.getElementById('defaultYear').value), area = parseFloat(document.getElementById('wallArea').value), useVar = document.getElementById('similarProperty').checked, res = document.getElementById(`result-${i}`);
         
         let instY = parseInt(document.getElementById(`year-${i}`).value) || defY;
         if (!instY && !c.isCO2) { res.innerHTML = "<span style='color:red;'>Set Year</span>"; return; }
-
-        if (useVar && c.vary) {
-            const jit = Math.floor(Math.random() * 4) + 2;
-            instY += (Math.random() < 0.5 ? -jit : jit);
-        }
+        
+        if (useVar && c.vary) { const jit = Math.floor(Math.random()*4)+2; instY += (Math.random()<0.5?-jit:jit); }
+        
         if (c.isCO2) {
-            const kY = parseInt(document.getElementById('year-10').value) || defY;
-            instY = (kY >= 2020) ? kY : Math.floor(Math.random() * 7) + 2020;
+            // Find the index of the Kitchen component automatically
+            const kitchenIdx = components.findIndex(comp => comp.name === "Kitchens");
+            const kY = parseInt(document.getElementById(`year-${kitchenIdx}`).value) || defY;
+            instY = (kY>=2020 && kY<=currentYear)?kY:Math.floor(Math.random()*(currentYear-2020+1))+2020;
         }
+        
         if (instY > currentYear) instY = currentYear;
-
+        
         let nextExp = instY + c.life;
         while (nextExp <= currentYear) nextExp += c.life;
-
         const rem = nextExp - currentYear;
+        
         let extra = "";
         if (c.isInsulation) extra += `<span class="extra-data">Dep: ${Math.max(150, Math.min(250, Math.round(150 + ((instY - 2010) * 6.25))))}mm</span>`;
         if (c.isRoofCovering && area) extra += `<span class="extra-data">Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</span>`;
-
+        
         res.innerHTML = `<span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span><span class="history-note">Due: ${nextExp}</span>${extra}`;
+    }
+
+    function generateSummary() {
+        const ref = document.getElementById('propRef').value || "Unknown Property";
+        let s = `REPORT: ${ref}\nDate: ${new Date().toLocaleDateString()}\n--------------------\n`;
+        components.forEach((c, i) => {
+            const r = document.getElementById(`result-${i}`);
+            if (r && r.innerText !== "---") s += `${c.name}: ${r.innerText.replace(/\n/g, " | ")}\n`;
+        });
+        document.getElementById('reportText').innerText = s;
+        document.getElementById('reportOutput').style.display = 'block';
     }
 </script>
 </body>
