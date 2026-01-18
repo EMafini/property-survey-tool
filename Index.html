@@ -101,26 +101,28 @@
         } else { alert("Incorrect Authorization Code."); }
     }
 
+    // UPDATED ORDER 0-10 AS REQUESTED
     const components = [
-        { name: "Wall Structure", life: 80 }, 
+        { name: "CO2 Detector", life: 5, isCO2: true },            // 0
+        { name: "Bathrooms", life: 30, vary: true },              // 1
+        { name: "Kitchens", life: 20, vary: true },               // 2
+        { name: "Wall Structure", life: 80 },                      // 3
+        { name: "Brick Wall Finish", life: 60 },                  // 4
+        { name: "Roof Structure", life: 50 },                     // 5
+        { name: "Roof Finish", life: 50, isRoofCovering: true },   // 6
+        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true }, // 7
+        { name: "Chimneys", life: 50 },                           // 8
+        { name: "Windows", life: 30, vary: true },                 // 9
+        { name: "External Door (Front)", life: 30, vary: true },  // 10
+        { name: "External Door (Side)", life: 30, vary: true },
+        { name: "External Door (Rear)", life: 30, vary: true },
+        { name: "Patio/French Doors", life: 30, vary: true },
         { name: "Lintels", life: 60 },
-        { name: "Brick Wall Finish", life: 60 }, 
-        { name: "Roof Structure", life: 50 },
-        { name: "Roof Finish", life: 50, isRoofCovering: true },
-        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true },
-        { name: "Chimneys", life: 50 }, 
-        { name: "Windows", life: 30, vary: true },
-        { name: "External Door (Front)", life: 30, vary: true }, 
-        { name: "External Door (Rear/Side)", life: 30, vary: true }, 
-        { name: "Patio/French Doors", life: 30, vary: true }, 
         { name: "Roofline Items", life: 30 },
-        { name: "Kitchens", life: 20, vary: true }, 
-        { name: "Bathrooms", life: 30, vary: true },
-        { name: "Gas Boilers", life: 15 }, 
+        { name: "Gas Boilers", life: 15 },
         { name: "Radiators", life: 30 },
-        { name: "Gen. Heating", life: 30, vary: true }, 
-        { name: "Electrics", life: 30, vary: true },
-        { name: "CO2 Detector", life: 5, isCO2: true }
+        { name: "Gen. Heating", life: 30, vary: true },
+        { name: "Electrics", life: 30, vary: true }
     ];
 
     const grid = document.getElementById('mainGrid');
@@ -151,9 +153,9 @@
         if (useVar && c.vary) { const jit = Math.floor(Math.random()*4)+2; instY += (Math.random()<0.5?-jit:jit); }
         
         if (c.isCO2) {
-            // Find the index of the Kitchen component automatically
-            const kitchenIdx = components.findIndex(comp => comp.name === "Kitchens");
-            const kY = parseInt(document.getElementById(`year-${kitchenIdx}`).value) || defY;
+            // Find Kitchen automatically by name to avoid index errors
+            const kIdx = components.findIndex(comp => comp.name === "Kitchens");
+            const kY = parseInt(document.getElementById(`year-${kIdx}`).value) || defY;
             instY = (kY>=2020 && kY<=currentYear)?kY:Math.floor(Math.random()*(currentYear-2020+1))+2020;
         }
         
