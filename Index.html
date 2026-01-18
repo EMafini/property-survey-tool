@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RemLife Surveyor Pro</title>
     <style>
-        :root { --primary: #3498db; --success: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --dark: #2c3e50; }
+        :root { --primary: #3498db; --success: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --dark: #2c3e50; --accent: #8e44ad; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); padding: 10px; color: #333; margin: 0; }
         .container { max-width: 850px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin: auto; }
         
         #loginScreen { text-align: center; padding: 50px 20px; }
         #appContent { display: none; }
 
-        h1 { color: var(--dark); text-align: center; font-size: 1.3rem; margin: 5px 0 10px 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+        h1 { color: var(--dark); text-align: center; font-size: 1.2rem; margin: 5px 0; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
         .credit { text-align: center; font-size: 0.7rem; color: #aaa; margin-bottom: 10px; font-style: italic; }
 
         .header-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; }
@@ -24,27 +24,27 @@
         .checkbox-group input { width: 22px; height: 22px; }
 
         .btn-row { grid-column: span 2; display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-all { flex: 2 1 100%; background: var(--success); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 5px; }
-        .btn-report { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; }
-        .btn-reset { flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; cursor: pointer; }
+        .btn-all { flex: 2 1 100%; background: var(--success); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .btn-report { flex: 1; background: var(--dark); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
+        .btn-reset { flex: 1; background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
 
         .row { display: grid; grid-template-columns: 1.1fr 0.8fr 0.6fr 1.4fr; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .row-label { font-size: 0.8rem; font-weight: 600; }
-        .row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
-        .btn-single { background: var(--primary); color: white; border: none; padding: 8px 4px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        .row-label { font-size: 0.75rem; font-weight: 600; color: #444; }
+        .row select, .row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; width: 100%; box-sizing: border-box; background: white; }
+        .btn-single { background: var(--primary); color: white; border: none; padding: 8px 4px; border-radius: 4px; font-size: 0.7rem; }
 
         .result-box { font-size: 0.75rem; line-height: 1.2; }
-        .rem-years { font-weight: bold; font-size: 0.9rem; display: block; }
-        .history-note { font-size: 0.7rem; color: #777; display: block; }
-        .extra-data { font-size: 0.75rem; color: #d35400; font-weight: 600; display: block; }
+        .rem-years { font-weight: bold; font-size: 0.85rem; display: block; }
+        .cycle-end { color: #e67e22; font-weight: bold; display: block; border-left: 3px solid #e67e22; padding-left: 4px; margin: 2px 0; }
+        .history-note { font-size: 0.65rem; color: #777; display: block; }
+
+        .door-section { border-top: 2px dashed #ddd; margin-top: 10px; padding-top: 5px; }
+        .add-door-btn { background: var(--accent); color: white; border: none; padding: 8px; border-radius: 5px; font-size: 0.8rem; margin: 10px 0; width: 100%; cursor: pointer; }
 
         #reportOutput { display: none; background: #333; color: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; }
-        .close-report { position: absolute; top: 5px; right: 10px; color: #ff7675; font-weight: bold; cursor: pointer; }
+        .close-report { position: absolute; top: 5px; right: 10px; color: #ff7675; cursor: pointer; }
 
-        @media (max-width: 480px) {
-            .row { grid-template-columns: 1fr 0.8fr 1.2fr; }
-            .row div:nth-child(3) { display: none; } 
-        }
+        @media (max-width: 480px) { .row { grid-template-columns: 1fr 0.8fr 1.2fr; } .row div:nth-child(3) { display: none; } }
     </style>
 </head>
 <body>
@@ -52,10 +52,15 @@
 <div class="container">
     <div id="loginScreen">
         <h1>Surveyor Login</h1>
-        <p style="font-size: 0.9rem; color: #666;">Enter authorization code for the RemLife tool.</p>
-        <input type="password" id="passInput" placeholder="Code" style="padding:12px; width:80%; border:2px solid #ddd; border-radius:6px; font-size:1.1rem; text-align:center;">
+        <p style="font-size: 0.85rem; color: #666;">Enter passcode (Numpad Enabled)</p>
+        <input type="password" 
+               id="passInput" 
+               placeholder="12126" 
+               inputmode="numeric" 
+               pattern="[0-9]*" 
+               style="padding:15px; width:70%; border:2px solid #ddd; border-radius:8px; font-size:1.5rem; text-align:center;">
         <br><br>
-        <button onclick="checkPass()" style="padding:12px 30px; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Access Tool</button>
+        <button onclick="checkPass()" style="padding:15px 40px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Access Tool</button>
     </div>
 
     <div id="appContent">
@@ -63,60 +68,55 @@
         <div class="credit">Proprietary Algorithm — Developed by [Your Name]</div>
 
         <div class="header-controls">
-            <div class="control-group full-width">
-                <label>Property Reference</label>
-                <input type="text" id="propRef" placeholder="Address / Postcode">
-            </div>
-            <div class="control-group">
-                <label>Build Year</label>
-                <input type="number" id="defaultYear" placeholder="Year">
-            </div>
-            <div class="control-group">
-                <label>Wall Area</label>
-                <input type="number" id="wallArea" placeholder="m²">
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="similarProperty">
-                <label for="similarProperty">Similar Property (2-5y Jitter)</label>
-            </div>
+            <div class="control-group full-width"><label>Property Reference</label><input type="text" id="propRef" placeholder="Address"></div>
+            <div class="control-group"><label>Build Year</label><input type="number" id="defaultYear" placeholder="Year"></div>
+            <div class="control-group"><label>Wall Area</label><input type="number" id="wallArea" placeholder="m²"></div>
+            <div class="checkbox-group"><input type="checkbox" id="similarProperty"><label for="similarProperty">Similar Property (2-5y Jitter)</label></div>
             <div class="btn-row">
                 <button class="btn-all" onclick="calculateAll()">Calculate All</button>
                 <button class="btn-report" onclick="generateSummary()">Report</button>
                 <button class="btn-reset" onclick="resetForm()">Reset</button>
             </div>
         </div>
+
         <div id="mainGrid"></div>
+        <div class="door-section">
+            <div id="doorGrid"></div>
+            <button class="add-door-btn" onclick="addDoorRow()">+ Add Another Door Type</button>
+        </div>
+
+        <div id="extraGrid"></div>
+
         <div id="reportOutput"><span class="close-report" onclick="this.parentElement.style.display='none'">[Close]</span><div id="reportText"></div></div>
     </div>
 </div>
 
 <script>
-    const MY_PASSWORD = "1212026"; 
+    const MY_PASSWORD = "12126"; 
     const currentYear = new Date().getFullYear(); 
 
     function checkPass() {
         if (document.getElementById('passInput').value === MY_PASSWORD) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
-        } else { alert("Incorrect Authorization Code."); }
+        } else { alert("Incorrect Code."); }
     }
 
-    // UPDATED ORDER 0-10 AS REQUESTED
-    const components = [
-        { name: "CO2 Detector", life: 5, isCO2: true },            // 0
-        { name: "Bathrooms", life: 30, vary: true },              // 1
-        { name: "Kitchens", life: 20, vary: true },               // 2
-        { name: "Wall Structure", life: 80 },                      // 3
-        { name: "Brick Wall Finish", life: 60 },                  // 4
-        { name: "Roof Structure", life: 50 },                     // 5
-        { name: "Roof Finish", life: 50, isRoofCovering: true },   // 6
-        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true }, // 7
-        { name: "Chimneys", life: 50 },                           // 8
-        { name: "Windows", life: 30, vary: true },                 // 9
-        { name: "External Door (Front)", life: 30, vary: true },  // 10
-        { name: "External Door (Side)", life: 30, vary: true },
-        { name: "External Door (Rear)", life: 30, vary: true },
-        { name: "Patio/French Doors", life: 30, vary: true },
+    // Standard Components
+    const coreComponents = [
+        { name: "CO2 Detector", life: 5, isCO2: true },
+        { name: "Bathrooms", life: 30, vary: true },
+        { name: "Kitchens", life: 20, vary: true },
+        { name: "Wall Structure", life: 80 },
+        { name: "Brick Wall Finish", life: 60 },
+        { name: "Roof Structure", life: 50 },
+        { name: "Roof Finish", life: 50, isRoofCovering: true },
+        { name: "Roof Insulation", life: 40, isInsulation: true, vary: true },
+        { name: "Chimneys", life: 50 },
+        { name: "Windows", life: 30, vary: true }
+    ];
+
+    const footerComponents = [
         { name: "Lintels", life: 60 },
         { name: "Roofline Items", life: 30 },
         { name: "Gas Boilers", life: 15 },
@@ -125,62 +125,124 @@
         { name: "Electrics", life: 30, vary: true }
     ];
 
-    const grid = document.getElementById('mainGrid');
-    components.forEach((c, i) => {
+    function createRow(c, i, containerId) {
         const div = document.createElement('div');
-        div.className = 'row';
-        div.innerHTML = `<div class="row-label">${c.name}</div><div><input type="number" id="year-${i}" placeholder="Auto"></div><div><button class="btn-single" onclick="calculateSingle(${i})">Calc</button></div><div class="result-box" id="result-${i}">---</div>`;
-        grid.appendChild(div);
-    });
+        div.className = 'row component-row';
+        div.dataset.life = c.life;
+        div.dataset.name = c.name;
+        div.dataset.vary = c.vary || false;
+        div.dataset.isCO2 = c.isCO2 || false;
+        div.dataset.isInsulation = c.isInsulation || false;
+        div.dataset.isRoofCovering = c.isRoofCovering || false;
 
-    document.addEventListener('keydown', (e) => { if (e.key === '=' || e.key === 'Enter') calculateAll(); });
-
-    function resetForm() {
-        document.querySelectorAll('input').forEach(i => i.value = '');
-        document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---');
-        document.getElementById('similarProperty').checked = false;
-        document.getElementById('reportOutput').style.display = 'none';
+        div.innerHTML = `
+            <div class="row-label">${c.name}</div>
+            <div><input type="number" class="inst-year" placeholder="Auto"></div>
+            <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
+            <div class="result-box">---</div>
+        `;
+        document.getElementById(containerId).appendChild(div);
     }
 
-    function calculateAll() { components.forEach((_, i) => calculateSingle(i)); }
+    coreComponents.forEach((c, i) => createRow(c, i, 'mainGrid'));
+    footerComponents.forEach((c, i) => createRow(c, i, 'extraGrid'));
 
-    function calculateSingle(i) {
-        const c = components[i], defY = parseInt(document.getElementById('defaultYear').value), area = parseFloat(document.getElementById('wallArea').value), useVar = document.getElementById('similarProperty').checked, res = document.getElementById(`result-${i}`);
-        
-        let instY = parseInt(document.getElementById(`year-${i}`).value) || defY;
-        if (!instY && !c.isCO2) { res.innerHTML = "<span style='color:red;'>Set Year</span>"; return; }
-        
-        if (useVar && c.vary) { const jit = Math.floor(Math.random()*4)+2; instY += (Math.random()<0.5?-jit:jit); }
-        
-        if (c.isCO2) {
-            // Find Kitchen automatically by name to avoid index errors
-            const kIdx = components.findIndex(comp => comp.name === "Kitchens");
-            const kY = parseInt(document.getElementById(`year-${kIdx}`).value) || defY;
-            instY = (kY>=2020 && kY<=currentYear)?kY:Math.floor(Math.random()*(currentYear-2020+1))+2020;
+    function addDoorRow() {
+        const div = document.createElement('div');
+        div.className = 'row door-row component-row';
+        div.dataset.life = 30;
+        div.dataset.vary = true;
+        div.innerHTML = `
+            <div>
+                <select class="door-type">
+                    <option value="Ext Front Door">Ext Front Door</option>
+                    <option value="Ext Rear Door">Ext Rear Door</option>
+                    <option value="Ext Side Door">Ext Side Door</option>
+                    <option value="Patio Door">Patio Door</option>
+                </select>
+            </div>
+            <div><input type="number" class="inst-year" placeholder="Year"></div>
+            <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
+            <div class="result-box">---</div>
+        `;
+        document.getElementById('doorGrid').appendChild(div);
+    }
+    addDoorRow(); 
+
+    document.addEventListener('keydown', (e) => { 
+        if (e.key === '=' || e.key === 'Enter') {
+            if (document.getElementById('appContent').style.display === 'block') {
+                calculateAll(); 
+            } else {
+                checkPass();
+            }
         }
+    });
+
+    function calculateAll() { document.querySelectorAll('.component-row').forEach(row => calculateSingleRow(row)); }
+
+    function calculateSingleRow(row) {
+        const defY = parseInt(document.getElementById('defaultYear').value);
+        const area = parseFloat(document.getElementById('wallArea').value);
+        const useVar = document.getElementById('similarProperty').checked;
+        const resBox = row.querySelector('.result-box');
+        const life = parseInt(row.dataset.life);
         
+        let instY = parseInt(row.querySelector('.inst-year').value) || defY;
+        
+        if (row.dataset.isCO2 === "true") {
+            const kRow = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === "Kitchens");
+            const kY = parseInt(kRow.querySelector('.inst-year').value) || defY;
+            instY = (kY >= 2020 && kY <= currentYear) ? kY : Math.floor(Math.random() * (currentYear - 2020 + 1)) + 2020;
+        }
+
+        if (!instY) { resBox.innerHTML = "<span style='color:red;'>Set Year</span>"; return; }
+        if (useVar && row.dataset.vary === "true") instY += (Math.random() < 0.5 ? -1 : 1) * (Math.floor(Math.random() * 4) + 2);
         if (instY > currentYear) instY = currentYear;
-        
-        let nextExp = instY + c.life;
-        while (nextExp <= currentYear) nextExp += c.life;
+
+        let lastExp = instY;
+        let nextExp = instY + life;
+        while (nextExp <= currentYear) { lastExp = nextExp; nextExp += life; }
+
         const rem = nextExp - currentYear;
-        
+        const cycleEndedText = (lastExp > instY) ? `<span class="cycle-end">Cycle Finished: ${lastExp}</span>` : "";
+
         let extra = "";
-        if (c.isInsulation) extra += `<span class="extra-data">Dep: ${Math.max(150, Math.min(250, Math.round(150 + ((instY - 2010) * 6.25))))}mm</span>`;
-        if (c.isRoofCovering && area) extra += `<span class="extra-data">Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</span>`;
-        
-        res.innerHTML = `<span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span><span class="history-note">Due: ${nextExp}</span>${extra}`;
+        if (row.dataset.isInsulation === "true") extra += `<div>Dep: ${Math.max(150, Math.min(250, Math.round(150 + ((instY - 2010) * 6.25))))}mm</div>`;
+        if (row.dataset.isRoofCovering === "true" && area) extra += `<div>Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</div>`;
+
+        const name = row.querySelector('.door-type') ? row.querySelector('.door-type').value : row.dataset.name;
+        row.dataset.calculatedName = name;
+
+        resBox.innerHTML = `
+            <span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span>
+            ${cycleEndedText}
+            <span class="history-note">Next Due: ${nextExp}</span>
+            <div class="extra-data">${extra}</div>
+        `;
     }
 
     function generateSummary() {
         const ref = document.getElementById('propRef').value || "Unknown Property";
         let s = `REPORT: ${ref}\nDate: ${new Date().toLocaleDateString()}\n--------------------\n`;
-        components.forEach((c, i) => {
-            const r = document.getElementById(`result-${i}`);
-            if (r && r.innerText !== "---") s += `${c.name}: ${r.innerText.replace(/\n/g, " | ")}\n`;
+        document.querySelectorAll('.component-row').forEach(row => {
+            const r = row.querySelector('.result-box');
+            if (r && r.innerText !== "---") {
+                const name = row.dataset.calculatedName || row.dataset.name;
+                s += `${name}: ${r.innerText.replace(/\n/g, " | ")}\n`;
+            }
         });
         document.getElementById('reportText').innerText = s;
         document.getElementById('reportOutput').style.display = 'block';
+    }
+
+    function resetForm() {
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---');
+        document.getElementById('doorGrid').innerHTML = '';
+        addDoorRow();
+        document.getElementById('reportOutput').style.display = 'none';
+        document.getElementById('similarProperty').checked = false;
     }
 </script>
 </body>
