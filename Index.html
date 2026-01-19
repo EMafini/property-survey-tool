@@ -36,7 +36,9 @@
 
         .result-box { font-size: 0.75rem; line-height: 1.2; }
         .rem-years { font-weight: bold; font-size: 0.85rem; display: block; }
+        .co2-year-tag { color: var(--accent); font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; border: 1px dashed var(--accent); padding: 2px; text-align: center; border-radius: 4px; }
         .cycle-end { color: #e67e22; font-weight: bold; display: block; border-left: 3px solid #e67e22; padding-left: 4px; margin: 2px 0; }
+        .override-note { color: #8e44ad; font-size: 0.65rem; font-weight: bold; }
         .history-note { font-size: 0.65rem; color: #777; display: block; }
 
         .door-section { border-top: 2px dashed #ddd; border-bottom: 2px dashed #ddd; margin: 10px 0; padding: 10px 0; }
@@ -44,8 +46,6 @@
 
         #historyPanel { display: none; background: #333; color: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; position: relative; }
         .close-btn { position: absolute; top: 5px; right: 10px; color: #ff7675; cursor: pointer; font-weight: bold; }
-        #historySearch { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; font-size: 1rem; }
-        .history-item { border-bottom: 1px solid #555; padding: 10px 0; }
 
         @media (max-width: 480px) { .row { grid-template-columns: 1fr 0.8fr 1.2fr; } .row div:nth-child(3) { display: none; } }
     </style>
@@ -101,7 +101,6 @@
         <div id="historyPanel">
             <span class="close-btn" onclick="this.parentElement.style.display='none'">[X] Close</span>
             <h3>Saved Surveys</h3>
-            <input type="text" id="historySearch" placeholder="Search Postcode/Ref..." onkeyup="filterHistory()">
             <div id="historyList"></div>
         </div>
     </div>
@@ -109,7 +108,7 @@
 
 <script>
     const MY_PASSWORD = "12126"; 
-    const currentYear = new Date().getFullYear(); 
+    const currentYear = 2026; 
 
     function checkPass() {
         if (document.getElementById('passInput').value === MY_PASSWORD) {
@@ -122,14 +121,15 @@
     const components = [
         { name: "CO2 Detector", life: 5, isCO2: true, cat: "int", jitter: true, pos: "top" },
         { name: "Bathrooms", life: 30, vary: true, cat: "int", jitter: true, pos: "top" },
+        { name: "WC/WCB", life: 30, vary: true, cat: "int", jitter: true, pos: "top" },
         { name: "Kitchens", life: 20, vary: true, cat: "int", jitter: true, pos: "top" },
-        { name: "Wall Structure", life: 80, cat: "ext", pos: "top" },
+        { name: "Wall Structure", life: 80, cat: "ext", pos: "top", isStructure: true },
         { name: "Brick Wall Finish", life: 60, cat: "ext", pos: "top" },
-        { name: "Roof Structure", life: 50, cat: "ext", pos: "top" },
+        { name: "Roof Structure", life: 50, cat: "ext", pos: "top", isStructure: true },
         { name: "Roof Finish", life: 50, isRoofCovering: true, cat: "ext", pos: "top" },
         { name: "Roof Insulation", life: 40, isInsulation: true, vary: true, cat: "ext", jitter: true, pos: "top" },
         { name: "Chimneys", life: 50, cat: "ext", pos: "top" },
-        { name: "Windows", life: 30, vary: true, cat: "all", jitter: true, pos: "top" }, // Windows moved to Top
+        { name: "Windows", life: 30, vary: true, cat: "all", jitter: true, pos: "top" },
         { name: "Roofline Items", life: 30, cat: "ext", pos: "bottom" },
         { name: "Lintels", life: 60, cat: "ext", pos: "bottom" },
         { name: "Gas Boilers", life: 15, cat: "all", pos: "bottom" },
@@ -143,61 +143,34 @@
         const gridTop = document.getElementById('gridTop');
         const gridBottom = document.getElementById('gridBottom');
         const doorSection = document.getElementById('doorSection');
-        
-        gridTop.innerHTML = '';
-        gridBottom.innerHTML = '';
+        gridTop.innerHTML = ''; gridBottom.innerHTML = '';
         doorSection.style.display = (type === 'block') ? 'none' : 'block';
 
         components.forEach((c) => {
             if (type === 'flat' && c.cat === 'ext') return;
-            if (type === 'block' && (c.cat === 'int' || c.name === "Windows")) return; // Windows usually internal for blocks
-
+            if (type === 'block' && c.cat === 'int') return;
             const div = document.createElement('div');
             div.className = 'row component-row';
-            div.dataset.life = c.life;
-            div.dataset.name = c.name;
-            div.dataset.jitter = c.jitter || false;
-            div.dataset.isCO2 = c.isCO2 || false;
-            div.dataset.isInsulation = c.isInsulation || false;
-            div.dataset.isRoofCovering = c.isRoofCovering || false;
-
-            div.innerHTML = `
-                <div class="row-label">${c.name}</div>
-                <div><input type="number" class="inst-year" inputmode="numeric" placeholder="Auto"></div>
-                <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
-                <div class="result-box">---</div>
-            `;
-            
-            if (c.pos === "top") gridTop.appendChild(div);
-            else gridBottom.appendChild(div);
+            div.dataset.life = c.life; div.dataset.name = c.name; div.dataset.jitter = c.jitter || false;
+            div.dataset.isCO2 = c.isCO2 || false; div.dataset.isInsulation = c.isInsulation || false; div.dataset.isRoofCovering = c.isRoofCovering || false;
+            div.dataset.isStructure = c.isStructure || false;
+            div.innerHTML = `<div class="row-label">${c.name}</div><div><input type="number" class="inst-year" inputmode="numeric" placeholder="Auto"></div><div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div><div class="result-box">---</div>`;
+            if (c.pos === "top") gridTop.appendChild(div); else gridBottom.appendChild(div);
         });
     }
 
-    function addDoorRow(prefillName = "Ext Front Door", prefillYear = "") {
+    function addDoorRow() {
         const div = document.createElement('div');
         div.className = 'row door-row component-row';
-        div.dataset.life = 30;
-        div.dataset.jitter = true;
-        div.innerHTML = `
-            <div><select class="door-type"><option value="Ext Front Door">Ext Front Door</option><option value="Ext Rear Door">Ext Rear Door</option><option value="Ext Side Door">Ext Side Door</option><option value="Patio Door">Patio Door</option></select></div>
-            <div><input type="number" class="inst-year" inputmode="numeric" value="${prefillYear}" placeholder="Year"></div>
-            <div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div>
-            <div class="result-box">---</div>
-        `;
+        div.dataset.life = 30; div.dataset.jitter = true;
+        div.innerHTML = `<div><select class="door-type"><option value="Ext Front Door">Ext Front Door</option><option value="Ext Rear Door">Ext Rear Door</option><option value="Ext Side Door">Ext Side Door</option><option value="Patio Door">Patio Door</option></select></div><div><input type="number" class="inst-year" inputmode="numeric" placeholder="Year"></div><div><button class="btn-single" onclick="calculateSingleRow(this.parentElement.parentElement)">Calc</button></div><div class="result-box">---</div>`;
         document.getElementById('doorGrid').appendChild(div);
     }
     addDoorRow(); 
 
-    document.addEventListener('keydown', (e) => { 
-        if (e.key === '=' || e.key === 'Enter') {
-            if (document.getElementById('appContent').style.display === 'block') calculateAll(); else checkPass();
-        }
-    });
+    document.addEventListener('keydown', (e) => { if (e.key === '=' || e.key === 'Enter') { if (document.getElementById('appContent').style.display === 'block') calculateAll(); else checkPass(); } });
 
-    function calculateAll() { 
-        document.querySelectorAll('.component-row').forEach(row => calculateSingleRow(row));
-        if (document.getElementById('saveToggle').checked) saveToHistory();
-    }
+    function calculateAll() { document.querySelectorAll('.component-row').forEach(row => calculateSingleRow(row)); if (document.getElementById('saveToggle').checked) saveToHistory(); }
 
     function calculateSingleRow(row) {
         const defY = parseInt(document.getElementById('defaultYear').value);
@@ -205,101 +178,77 @@
         const useVar = document.getElementById('similarProperty').checked;
         const resBox = row.querySelector('.result-box');
         const life = parseInt(row.dataset.life);
-        
         let manualInput = row.querySelector('.inst-year').value;
         let instY = parseInt(manualInput) || defY;
-        
-        if (useVar && !manualInput && row.dataset.jitter === "true") {
+        let co2YearDisplay = "";
+        let overrideText = "";
+
+        if (row.dataset.isCO2 === "true") {
+            const kRow = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === "Kitchens");
+            const kY = kRow ? parseInt(kRow.querySelector('.inst-year').value) : 0;
+            if (manualInput) { instY = parseInt(manualInput); }
+            else if (kY >= 2020) { instY = kY; co2YearDisplay = `<span class="co2-year-tag">Using Kitchen: ${instY}</span>`; }
+            else { instY = Math.floor(Math.random() * (2026 - 2020 + 1)) + 2020; co2YearDisplay = `<span class="co2-year-tag">Random Set: ${instY}</span>`; }
+        } else if (useVar && !manualInput && row.dataset.jitter === "true") {
             const jit = Math.floor(Math.random() * 4) + 2;
             instY += (Math.random() < 0.5 ? -jit : jit);
         }
 
-        if (row.dataset.isCO2 === "true") {
-            const kRow = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === "Kitchens");
-            const kY = kRow ? (parseInt(kRow.querySelector('.inst-year').value) || defY) : defY;
-            instY = (kY >= 2020 && kY <= currentYear) ? kY : Math.floor(Math.random() * (currentYear - 2020 + 1)) + 2020;
-        }
-
         if (!instY) { resBox.innerHTML = "<span style='color:red;'>Set Year</span>"; return; }
         if (instY > currentYear) instY = currentYear;
-
-        let lastExp = instY;
-        let nextExp = instY + life;
+        let lastExp = instY; let nextExp = instY + life;
         while (nextExp <= currentYear) { lastExp = nextExp; nextExp += life; }
+        
+        let rem = nextExp - currentYear;
 
-        const rem = nextExp - currentYear;
-        const cycleEndedText = (lastExp > instY) ? `<span class="cycle-end">Cycle Finished: ${lastExp}</span>` : "";
-
-        let extra = "";
+        // SPECIFIC OVERRIDES
         if (row.dataset.isInsulation === "true") {
             const depths = [150, 200, 250];
-            const randDepth = depths[Math.floor(Math.random() * depths.length)];
-            extra += `<div>Dep: ${randDepth}mm</div>`;
+            const d = depths[Math.floor(Math.random() * depths.length)];
+            if (d < 250) { rem = 2; overrideText = `<div class="override-note">Loft < 250mm: 2y Override</div>`; }
+            overrideText += `<div>Depth: ${d}mm</div>`;
         }
-        if (row.dataset.isRoofCovering === "true" && area) extra += `<div>Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</div>`;
+        
+        const actualRem = rem;
+        if (row.dataset.isStructure === "true" && rem < 50) {
+            rem = 50;
+            overrideText = `<div class="override-note">Structural Default: 50y</div>`;
+        }
 
-        resBox.innerHTML = `<span class="rem-years" style="color:${rem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span>${cycleEndedText}<span class="history-note">Next Due: ${nextExp}</span><div class="extra-data">${extra}</div>`;
+        if (row.dataset.isRoofCovering === "true" && area) overrideText += `<div>Area: ${((area/2) + (Math.random()*2+12)).toFixed(1)}m²</div>`;
+
+        resBox.innerHTML = `
+            ${co2YearDisplay}
+            <span class="rem-years" style="color:${actualRem<=5?'var(--danger)':'var(--success)'}">${rem}y Rem</span>
+            ${(lastExp > instY) ? `<span class="cycle-end">Cycle Finished: ${lastExp}</span>` : ""}
+            <span class="history-note">Next Due: ${nextExp}</span>
+            <div class="extra-data">${overrideText}</div>
+        `;
     }
 
     function saveToHistory() {
-        const ref = document.getElementById('propRef').value;
-        if (!ref) { alert("Enter Ref to save!"); return; }
+        const ref = document.getElementById('propRef').value; if (!ref) { alert("Enter Ref!"); return; }
         const history = JSON.parse(localStorage.getItem('surveyHistory') || '[]');
-        const entry = {
-            ref: ref, date: new Date().toLocaleString(),
-            buildYear: document.getElementById('defaultYear').value,
-            type: document.getElementById('propType').value,
-            data: Array.from(document.querySelectorAll('.component-row')).map(row => ({
-                name: row.dataset.name || row.querySelector('.door-type')?.value,
-                year: row.querySelector('.inst-year').value
-            }))
-        };
-        history.unshift(entry);
-        localStorage.setItem('surveyHistory', JSON.stringify(history.slice(0, 50)));
-        document.getElementById('saveToggle').checked = false;
+        const entry = { ref, date: new Date().toLocaleString(), buildYear: document.getElementById('defaultYear').value, type: document.getElementById('propType').value, data: Array.from(document.querySelectorAll('.component-row')).map(row => ({ name: row.dataset.name || row.querySelector('.door-type')?.value, year: row.querySelector('.inst-year').value })) };
+        history.unshift(entry); localStorage.setItem('surveyHistory', JSON.stringify(history.slice(0, 50))); document.getElementById('saveToggle').checked = false;
     }
 
-    function toggleHistory() {
-        const panel = document.getElementById('historyPanel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        filterHistory();
-    }
+    function toggleHistory() { const panel = document.getElementById('historyPanel'); panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; filterHistory(); }
 
     function filterHistory() {
-        const search = document.getElementById('historySearch').value.toLowerCase();
         const history = JSON.parse(localStorage.getItem('surveyHistory') || '[]');
         const list = document.getElementById('historyList');
-        list.innerHTML = history.filter(h => h.ref.toLowerCase().includes(search)).map((h, i) => `
-            <div class="history-item">
-                <strong>${h.ref}</strong> [${h.type}] (${h.date.split(',')[0]})<br>
-                <button onclick="loadHistory(${i})" style="margin-top:5px; background:var(--primary); color:white; border:none; padding:8px; border-radius:3px;">Load Data</button>
-            </div>
-        `).join('');
+        list.innerHTML = history.map((h, i) => `<div class="history-item"><strong>${h.ref}</strong> [${h.type}]<br><button onclick="loadHistory(${i})" style="margin-top:5px; background:var(--primary); color:white; border:none; padding:8px; border-radius:3px;">Load Data</button></div>`).join('');
     }
 
     function loadHistory(index) {
         const h = JSON.parse(localStorage.getItem('surveyHistory'))[index];
-        document.getElementById('propRef').value = h.ref;
-        document.getElementById('propType').value = h.type;
-        document.getElementById('defaultYear').value = h.buildYear;
-        renderGrid();
-        setTimeout(() => {
-            h.data.forEach(item => {
-                const rows = Array.from(document.querySelectorAll('.component-row'));
-                const row = rows.find(r => r.dataset.name === item.name || r.querySelector('.door-type')?.value === item.name);
-                if (row) row.querySelector('.inst-year').value = item.year;
-            });
-            calculateAll();
-        }, 100);
+        document.getElementById('propRef').value = h.ref; document.getElementById('propType').value = h.type; document.getElementById('defaultYear').value = h.buildYear;
+        renderGrid(); setTimeout(() => { h.data.forEach(item => { const row = Array.from(document.querySelectorAll('.component-row')).find(r => r.dataset.name === item.name || r.querySelector('.door-type')?.value === item.name); if (row) row.querySelector('.inst-year').value = item.year; }); calculateAll(); }, 100);
         document.getElementById('historyPanel').style.display = 'none';
     }
 
-    function resetForm() {
-        document.querySelectorAll('input').forEach(i => i.value = '');
-        document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---');
-        document.getElementById('doorGrid').innerHTML = '';
-        addDoorRow(); renderGrid();
-    }
+    function resetForm() { document.querySelectorAll('input').forEach(i => i.value = ''); document.querySelectorAll('.result-box').forEach(r => r.innerHTML = '---'); document.getElementById('doorGrid').innerHTML = ''; addDoorRow(); renderGrid(); }
 </script>
 </body>
 </html>
